@@ -13,19 +13,21 @@ describe('POST /api/users', function (){
     })
 
     it("should can register new user", async () => {
-        const result = await supertest(web)
+        const fetch = await supertest(web)
         .post('/api/users')
         .send({
             username: 'kristofer',
             password: 'secret',
             name: 'kristofer bayu'
         });
+        
+        const result = await fetch.body
 
-        expect(result.status).toBe(200);
-        expect(result.body.username).toBe('kristofer');
-        expect(result.body.name).toBe('kristofer bayu');
-        expect(result.body.password).toBeUndefined;
-
+        expect(fetch.status).toBe(200);
+        expect(result.status).toBe(true);
+        expect(result.data.username).toBe('kristofer');
+        expect(result.data.name).toBe('kristofer bayu');
+        expect(result.data.password).toBeUndefined;
 
     });
 });
