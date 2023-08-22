@@ -8,11 +8,11 @@ import { ClientManager } from "../whatsapp/whatsapp.js";
 
 const clientManager = new ClientManager();
 
-async function addNewClient(clientName) {
+async function addNewClient(clientName, id) {
 
-    const client = await clientManager.createClient(clientName);
-
+    const client = await clientManager.createClient(clientName, id);
     client.initialize();
+
 }
 
 const createClient = async (request, username) => {
@@ -35,23 +35,25 @@ const createClient = async (request, username) => {
         }
     });
 
-    console.log(countClient);
-
     // JIKA TERDAPAT CLIENT YANG SAMA DI USERNAME TERSEBUT, MAKA AKAN MELEMPARKAN ERROR BARU
     if (countClient === 1) {
-        throw new ResponseError(400, "username already exists");
+        throw new ResponseError(400, "clientname already exists");
     }
 
     // MENAMBAHKAN DATA CLIENT DI TABEL CLIENTS DATABASE
-    await prismaClient.client.create({
+    const id = await prismaClient.client.create({
         data: {
             client_name: client.client_name,
-            username: username
+            username: username,
+            state: "ON CREATE"
+        },
+        select: {
+            id: true
         }
     });
 
     // AKAN MENJALANKAN FUNCTION UNTUK MEMBUAT CLIENT BARU
-    await addNewClient(client.client_name);
+    await addNewClient(client.client_name, id.id);
 
     // MENGEMBALIKAN DATA CLIENT YANG TELAH DIBUAT DARI DATABASE
     return prismaClient.client.findFirst({
@@ -61,10 +63,44 @@ const createClient = async (request, username) => {
     });
 }
 
-const getQRCode = async (request, username) => {
+const getClientByName = async (request, username) => {
+    // VALIDASI CURRENT USERNAME DAN REQUEST
+    username = validate(getUserValidation, username);
+    const client = validate(createClientValidation, request);
 
+    // PENGECEKAN NAMA CLIENT DI TABLE CLIENTS DATABASE
+    const count = await prismaClient.client.count({
+        where: {
+            AND: [
+                {
+                    username: username
+                },
+                {
+                    client_name: client.client_name
+                }
+            ]
+        }
+    });
+
+    if (count === 0){
+        throw new ResponseError(400, "clientname is not found");
+    }
+
+    return prismaClient.client.findFirst({
+        where: {
+            AND: [
+                {
+                    username: username
+                },
+                {
+                    client_name: client.client_name
+                }
+            ]
+        }
+    });
 }
 
 export default {
-    createClient
+    createClient,
+    getClientByName
 }

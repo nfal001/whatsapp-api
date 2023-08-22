@@ -10,13 +10,13 @@ class ClientManager {
         this.clients = {}
     }
 
-    createClient = async (clientName) => {
+    createClient = async (clientName, id) => {
 
         // MEMBUAT OBJECT CLIENT
         const client = new Client({
             authStrategy: new LocalAuth({
                 clientId: clientName,
-                dataPath: "../../local_auth/"
+                dataPath: "./local_auth/"
             }),
             puppeteer: {
                 args: ['--no-sandbox'],
@@ -36,7 +36,7 @@ class ClientManager {
                     qr_code: qrCodeURL
                 },
                 where: {
-                    client_name: clientName
+                    id: id
                 }
             });
         });
@@ -49,7 +49,7 @@ class ClientManager {
                     qr_code: null
                 },
                 where: {
-                    client_name: clientName
+                    id: id
                 }
             });
         });
