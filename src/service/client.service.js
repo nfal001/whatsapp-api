@@ -1,4 +1,6 @@
+import { prismaClient } from "../application/database.js";
 import { createClientValidation } from "../validation/client.validation.js";
+import { ResponseError } from "../error/response-error.js";
 import { getUserValidation } from "../validation/user.validation.js";
 import { validate } from "../validation/validation.js";
 import { ClientManager } from "../whatsapp/whatsapp.js";
@@ -6,28 +8,20 @@ import { ClientManager } from "../whatsapp/whatsapp.js";
 
 const clientManager = new ClientManager();
 
-function sendMessageFromClient(clientName, targetNumber, message){
-    const clientInfo = clientManager.clients[clientName]
+async function addNewClient(clientName) {
 
-    if (clientInfo){
-        const client = clientInfo.client;
-        client.sendMessage(targetNumber, message);
-    } else {
-        console.log(`Client ${clientName} not found.`);
-    }
-}
-
-function addNewClient(clientName) {
-
-    const client = clientManager.createClient(clientName);
+    const client = await clientManager.createClient(clientName);
 
     client.initialize();
 }
 
 const createClient = async (request, username) => {
+
+    // VALIDASI CURRENT USERNAME DAN REQUEST
     username = validate(getUserValidation, username);
     const client = validate(createClientValidation, request);
 
+    // PENGECEKAN NAMA CLIENT DI TABLE CLIENT YANG DIMILIKI CURRENT USERNAME
     const countClient = await prismaClient.client.count({
         where: {
             AND: [
@@ -41,15 +35,33 @@ const createClient = async (request, username) => {
         }
     });
 
+    console.log(countClient);
+
+    // JIKA TERDAPAT CLIENT YANG SAMA DI USERNAME TERSEBUT, MAKA AKAN MELEMPARKAN ERROR BARU
     if (countClient === 1) {
         throw new ResponseError(400, "username already exists");
     }
 
-    addNewClient(client.client_name);
+    // MENAMBAHKAN DATA CLIENT DI TABEL CLIENTS DATABASE
+    await prismaClient.client.create({
+        data: {
+            client_name: client.client_name,
+            username: username
+        }
+    });
 
-    
+    // AKAN MENJALANKAN FUNCTION UNTUK MEMBUAT CLIENT BARU
+    await addNewClient(client.client_name);
 
-    
+    // MENGEMBALIKAN DATA CLIENT YANG TELAH DIBUAT DARI DATABASE
+    return prismaClient.client.findFirst({
+        where: {
+            client_name: client.client_name
+        }
+    });
+}
+
+const getQRCode = async (request, username) => {
 
 }
 

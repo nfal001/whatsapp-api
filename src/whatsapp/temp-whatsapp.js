@@ -1,6 +1,7 @@
-import {pkg} from 'qrcode-terminal';
-const readline = require('readline');
-const { Client, LocalAuth } = require('whatsapp-web.js');
+import qrcode from 'qrcode-terminal';
+import readline from 'readline';
+import Whatsapp from 'whatsapp-web.js';
+const { Client, LocalAuth } = Whatsapp;
 
 const rl = readline.createInterface({
     input: process.stdin,

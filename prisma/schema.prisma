@@ -23,7 +23,8 @@ model User {
 model Client {
   id Int @id @default(autoincrement())
   client_name String @db.VarChar(100)
-  qr_code String @db.Text()
+  qr_code String? @db.Text()
+  state String? @db.VarChar(20)
   foward Int @db.TinyInt() @default(0)
   username String @db.VarChar(100)
   user User @relation(fields: [username], references: [username])
