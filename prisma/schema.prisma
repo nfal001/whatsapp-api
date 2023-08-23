@@ -11,23 +11,23 @@ datasource db {
 }
 
 model User {
-  username String @id @db.VarChar(100)
-  password String @db.VarChar(100)
-  name String @db.VarChar(100)
-  token String? @db.VarChar(100)
-  clients Client[]
+  username String   @id @db.VarChar(100)
+  password String   @db.VarChar(100)
+  name     String   @db.VarChar(100)
+  token    String?  @db.VarChar(100)
+  clients  Client[]
 
   @@map("users")
 }
 
 model Client {
-  id Int @id @default(autoincrement())
-  client_name String @db.VarChar(100)
-  qr_code String? @db.Text()
-  state String? @db.VarChar(20)
-  foward Int @db.TinyInt() @default(0)
-  username String @db.VarChar(100)
-  user User @relation(fields: [username], references: [username])
+  id          Int     @id @default(autoincrement())
+  client_name String  @db.VarChar(100)
+  qr_code     String? @db.Text()
+  state       String? @db.VarChar(20)
+  foward      Int     @default(0) @db.SmallInt
+  username    String  @db.VarChar(100)
+  user        User    @relation(fields: [username], references: [username])
 
   @@map("clients")
 }

@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { logger } from "./application/logging.js"
 import { web } from "./application/web.js"
 

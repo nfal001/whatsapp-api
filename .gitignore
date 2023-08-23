@@ -3,3 +3,4 @@ node_modules
 .env
 .wwebjs_cache
 local_auth
+storage/whatsapp

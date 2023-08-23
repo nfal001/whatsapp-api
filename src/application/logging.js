@@ -1,5 +1,5 @@
 import winston from "winston";
-
+import config from '../config/config.js'
 
 const logger = winston.createLogger({
     level: "info",
@@ -9,6 +9,18 @@ const logger = winston.createLogger({
     ]
 });
 
+const logEmitter = {
+    info: (e) => {
+        config.app.DebugMode ? logger.info(e) : ''
+    },
+    warn: (e) => {
+        config.app.DebugMode ? logger.warn(e) : ''
+    },
+    error: (e) => {
+        config.app.DebugMode ? logger.error(e) : ''
+    }
+}
+
 export {
-    logger
+    logger, logEmitter
 }
