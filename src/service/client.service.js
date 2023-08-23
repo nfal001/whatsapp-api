@@ -100,7 +100,27 @@ const getClientByName = async (request, username) => {
     });
 }
 
+const getAllClient = async (username) => {
+    
+    username = validate(getUserValidation, username);
+
+    return prismaClient.client.findMany({
+        where: {
+            username: username
+        },
+        select: {
+            id: true,
+            client_name: true,
+            state: true,
+            foward: true,
+            username: true
+        }
+    });
+}
+
+
 export default {
     createClient,
-    getClientByName
+    getClientByName,
+    getAllClient
 }

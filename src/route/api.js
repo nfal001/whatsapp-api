@@ -12,7 +12,8 @@ userRouter.delete("/api/users/logout", userController.logout);
 const clientRouter = new express.Router();
 clientRouter.use(authMiddleware);
 clientRouter.post("/api/clients", clientController.createNewClient);
-clientRouter.get("/api/clients", clientController.getClientByName);
+clientRouter.get("/api/clients/:client_name", clientController.getClientByName);
+clientRouter.get("/api/clients", clientController.getAllClient);
 
 export {
     userRouter,

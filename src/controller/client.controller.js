@@ -20,10 +20,8 @@ const getClientByName = async (req, res, next) => {
     try {
         const username = req.user.username;
         const request = {
-            client_name: req.query.client_name
+            client_name: req.params.client_name
         };
-
-        console.log(request);
 
         const result = await clientService.getClientByName(request, username);
         res.status(200).json({
@@ -35,7 +33,23 @@ const getClientByName = async (req, res, next) => {
     }
 }
 
+const getAllClient = async (req, res, next) => {
+
+    try {
+        const username = req.user.username;
+
+        const result = await clientService.getAllClient(username);
+        res.status(200).json({
+            status: true,
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
 export default {
     createNewClient,
-    getClientByName
+    getClientByName,
+    getAllClient
 }
