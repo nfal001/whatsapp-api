@@ -3,7 +3,7 @@ import { ResponseError } from "../error/response-error.js";
 import { getUserValidation, loginUserValidation, registerUserValidation, updateUserValidation } from "../validation/user.validation.js";
 import { validate } from "../validation/validation.js";
 import bcrypt from "bcrypt";
-import {v4 as uuid} from "uuid";
+import { v4 as uuid } from "uuid";
 
 const register = async (request) => {
     const user = validate(registerUserValidation, request)
@@ -42,21 +42,22 @@ const login = async (request) => {
         }
     });
 
-    if (!user){
+    if (!user) {
         throw new ResponseError(401, "Username or password wrong");
     }
 
     const isPasswordValid = bcrypt.compare(loginResquest.password, user.password);
 
-    if(!isPasswordValid){
+    if (!isPasswordValid) {
         throw new ResponseError(401, "Username or password wrong");
     }
 
     const token = uuid().toString()
+    const encode = new Buffer.from(token)
 
     return prismaClient.user.update({
         data: {
-            token: token
+            token: encode.toString('base64')
         },
         where: {
             username: user.username
@@ -96,21 +97,21 @@ const update = async (request) => {
         }
     });
 
-    if (countUser !== 1 ) {
+    if (countUser !== 1) {
         throw new ResponseError(404, "user is not found");
     }
 
     const data = {}
 
-    if(user.name){
+    if (user.name) {
         data.name = user.name;
     }
-    
-    if(user.password){
+
+    if (user.password) {
         data.password = await bcrypt.hash(user.password, 10);
     }
 
-    if(user.name){
+    if (user.name) {
         data.name = user.name;
     }
 
@@ -121,7 +122,7 @@ const update = async (request) => {
         data: data,
         select: {
             username: true,
-            name:true
+            name: true
         }
     });
 }
@@ -135,7 +136,7 @@ const logout = async (username) => {
         }
     });
 
-    if (!user){
+    if (!user) {
         throw new ResponseError(404, "user is not found");
     }
 
