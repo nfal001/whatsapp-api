@@ -48,8 +48,24 @@ const getAllClient = async (req, res, next) => {
     }
 }
 
+const sendMessage = async (req, res, next) => {
+    try {
+        const username = req.user.username;
+        const request = req.body;
+
+        const result = await clientService.sendMessage(request, username);
+        res.status(200).json({
+            status: true,
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
 export default {
     createNewClient,
     getClientByName,
-    getAllClient
+    getAllClient,
+    sendMessage
 }

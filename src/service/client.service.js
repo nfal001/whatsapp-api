@@ -1,5 +1,5 @@
 import { prismaClient } from "../application/database.js";
-import { createClientValidation } from "../validation/client.validation.js";
+import { createClientValidation, sendMessageValidation } from "../validation/client.validation.js";
 import { ResponseError } from "../error/response-error.js";
 import { getUserValidation } from "../validation/user.validation.js";
 import { validate } from "../validation/validation.js";
@@ -8,11 +8,25 @@ import { ClientManager } from "../whatsapp/whatsapp.js";
 
 const clientManager = new ClientManager();
 
+// FUNCTION UNTUK MENAMBAHKAN CLIENT
 async function addNewClient(clientName, id) {
 
     const client = await clientManager.createClient(clientName, id);
     client.initialize();
 
+}
+
+// FUNCTION UNTUK SEND MESSAGE
+async function sendTextMessage(clientName, targetNumber, textMessage){
+    const clientInfo = clientManager.clients;
+
+    const client = clientInfo.find(c => c.name === clientName).client;
+    
+    if (clientInfo){
+        client.sendMessage(targetNumber, textMessage);
+    } else {
+        throw new ResponseError(400, "client is not found");
+    }
 }
 
 const createClient = async (request, username) => {
@@ -118,9 +132,25 @@ const getAllClient = async (username) => {
     });
 }
 
+const sendMessage = async (request, username) => {
+    username = validate(getUserValidation, username);
+    request = validate(sendMessageValidation, request);
+
+    await sendTextMessage(request.client_name, `${request.target_number}@c.us`, request.text_message);
+   
+
+    return {
+        from : request.client_name,
+        target_number: request.target_number,
+        text_message: request.text_message
+    }
+
+}
+
 
 export default {
     createClient,
     getClientByName,
-    getAllClient
+    getAllClient,
+    sendMessage
 }
