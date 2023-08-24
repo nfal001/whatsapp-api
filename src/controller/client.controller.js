@@ -77,10 +77,82 @@ const sendMessage = async (req, res, next) => {
     }
 }
 
+const sendMedia = async (req, res, next) => {
+    try {
+        const username = req.user.username;
+        const request = req.body;
+
+        // TODO: MEMANGGIL SERVICE CLIENT SEND MEDIA
+
+        // RESPONSE
+        res.status(200).json({
+            status: true,
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
+const sendButton = async (req, res, next) => {
+    try {
+        const username = req.user.username;
+        const request = req.body;
+
+        // TODO: MEMANGGIL SERVICE CLIENT SEND BUTTON
+
+        // RESPONSE
+        res.status(200).json({
+            status: true,
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
+const setClientStatus = async (req, res, next) => {
+    try {
+        const username = req.user.username;
+        const request = req.body;
+
+        // TODO: MEMANGGIL SERVICE CLIENT SET STATUS
+
+        // RESPONSE
+        res.status(200).json({
+            status: true,
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
+const getUserPicture = async (req, res, next) => {
+    try {
+        const username = req.user.username;
+        const request = req.body;
+
+        // TODO: MEMANGGIL SERVICE CLIENT GET USER PICTURE
+
+        // RESPONSE
+        res.status(200).json({
+            status: true,
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
 export default {
     createNewClient,
     getClientByName,
     getAllClient,
     sendMessage,
-    initializeClient
+    initializeClient,
+    getUserPicture,
+    sendMedia,
+    sendButton,
+    setClientStatus,
 }
