@@ -15,6 +15,8 @@ clientRouter.post("/api/clients", clientController.createNewClient);
 clientRouter.get("/api/clients/:client_name", clientController.getClientByName);
 clientRouter.get("/api/clients", clientController.getAllClient);
 clientRouter.post("/api/clients/sendmessage", clientController.sendMessage);
+clientRouter.post("/api/clients/init", clientController.initializeClient);
+
 
 
 export {

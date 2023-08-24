@@ -32,7 +32,7 @@ const get = async (req, res, next) => {
             status: true,
             data: result
         });
-    } catch (e){
+    } catch (e) {
         next(e);
     }
 }
@@ -49,7 +49,7 @@ const update = async (req, res, next) => {
             status: true,
             data: result
         });
-    } catch (e){
+    } catch (e) {
         next(e);
     }
 }

@@ -16,6 +16,20 @@ const createNewClient = async (req, res, next) => {
     }
 }
 
+const initializeClient = async (req, res, next) => {
+    try {
+        const name = WAClientInstanceManager[req.body.client_name].clientName
+        // clientService.initializeClientInstance(req.body.client_name)
+
+        res.status(200).json({
+            status: true,
+            message: `wa-client ${name} initialized`
+        })
+    } catch (e) {
+        next(e)
+    }
+}
+
 const getClientByName = async (req, res, next) => {
     try {
         const username = req.user.username;
@@ -67,5 +81,6 @@ export default {
     createNewClient,
     getClientByName,
     getAllClient,
-    sendMessage
+    sendMessage,
+    initializeClient
 }
