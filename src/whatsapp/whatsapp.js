@@ -7,7 +7,7 @@ const { Client, LocalAuth } = whatsapp;
 
 class ClientManager {
     constructor (){
-        this.clients = {}
+        this.clients = []
     }
 
     createClient = async (clientName, id) => {
@@ -54,7 +54,12 @@ class ClientManager {
             });
         });
 
-        this.clients[clientName] = client;
+        const clientData = {
+            name: clientName,
+            client: client
+        }
+
+        this.clients.push(clientData);
 
         return client;
     }
