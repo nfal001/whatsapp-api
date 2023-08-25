@@ -3,26 +3,18 @@ import { createClientValidation, sendMessageValidation } from "../validation/cli
 import { ResponseError } from "../error/response-error.js";
 import { getUserValidation } from "../validation/user.validation.js";
 import { validate } from "../validation/validation.js";
-import { ClientManager } from "../whatsapp/whatsapp.js";
+import { ClientManager, WAClient } from "../whatsapp/whatsapp.js";
 
 
 const clientManager = new ClientManager();
 
-// FUNCTION UNTUK MENAMBAHKAN CLIENT
-async function addNewClient(clientName, id) {
-
-    const client = await clientManager.createClient(clientName, id);
-    client.initialize();
-
-}
-
 // FUNCTION UNTUK SEND MESSAGE
-async function sendTextMessage(clientName, targetNumber, textMessage){
+async function sendTextMessage(clientName, targetNumber, textMessage) {
     const clientInfo = clientManager.clients;
 
     const client = clientInfo.find(c => c.name === clientName).client;
-    
-    if (clientInfo){
+
+    if (clientInfo) {
         client.sendMessage(targetNumber, textMessage);
     } else {
         throw new ResponseError(400, "client is not found");
@@ -34,7 +26,7 @@ const createClient = async (request, username) => {
     // VALIDASI CURRENT USERNAME DAN REQUEST
     username = validate(getUserValidation, username);
     const client = validate(createClientValidation, request);
-
+    console.log(client)
     // PENGECEKAN NAMA CLIENT DI TABLE CLIENT YANG DIMILIKI CURRENT USERNAME
     const countClient = await prismaClient.client.count({
         where: {
@@ -54,6 +46,14 @@ const createClient = async (request, username) => {
         throw new ResponseError(400, "clientname already exists");
     }
 
+    const clientName = client.client_name
+
+    const uName = await addNewClient(clientName)
+
+    return {
+        ok: 'test',
+        clientName: uName
+    };
     // MENAMBAHKAN DATA CLIENT DI TABEL CLIENTS DATABASE
     const id = await prismaClient.client.create({
         data: {
@@ -77,6 +77,22 @@ const createClient = async (request, username) => {
     });
 }
 
+// FUNCTION UNTUK MENAMBAHKAN CLIENT
+async function addNewClient(clientName, id = '') {
+
+    // const client = await clientManager.createClient(clientName, id);
+    const clientWA = new WAClient(clientName)
+    // await clientWA.init()
+    WAClientInstanceManager[clientName] = clientWA
+    console.log(WAClientInstanceManager);
+    return WAClientInstanceManager[clientName].instance.options;
+    // client.initialize();
+}
+
+const initializeClientInstance = async (clientName) => {
+    await WAClientInstanceManager[clientName].init()
+}
+
 const getClientByName = async (request, username) => {
     // VALIDASI CURRENT USERNAME DAN REQUEST
     username = validate(getUserValidation, username);
@@ -96,7 +112,7 @@ const getClientByName = async (request, username) => {
         }
     });
 
-    if (count === 0){
+    if (count === 0) {
         throw new ResponseError(400, "clientname is not found");
     }
 
@@ -115,7 +131,7 @@ const getClientByName = async (request, username) => {
 }
 
 const getAllClient = async (username) => {
-    
+
     username = validate(getUserValidation, username);
 
     return prismaClient.client.findMany({
@@ -137,10 +153,10 @@ const sendMessage = async (request, username) => {
     request = validate(sendMessageValidation, request);
 
     await sendTextMessage(request.client_name, `${request.target_number}@c.us`, request.text_message);
-   
+
 
     return {
-        from : request.client_name,
+        from: request.client_name,
         target_number: request.target_number,
         text_message: request.text_message
     }
@@ -150,6 +166,7 @@ const sendMessage = async (request, username) => {
 
 export default {
     createClient,
+    initializeClientInstance,
     getClientByName,
     getAllClient,
     sendMessage

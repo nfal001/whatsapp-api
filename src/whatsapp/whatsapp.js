@@ -1,12 +1,55 @@
 import whatsapp from 'whatsapp-web.js';
 import { prismaClient } from '../application/database.js';
-import qrcode from 'qrcode';
+import qrcode from 'qrcode-terminal';
 
 const { Client, LocalAuth } = whatsapp;
 
+class WAClient {
+    constructor(clientName) {
+        this.clientInstanceName = clientName
 
+        const authLocal = new LocalAuth({
+            clientId: this.clientInstanceName,
+            dataPath: process.cwd() + "storage/whatsapp/local_auth/"
+        })
+
+        this.instance = new Client({
+            authStrategy: authLocal,
+            puppeteer: {
+                args: ['--no-sandbox'],
+                headless: false
+            }
+        })
+    }
+
+    get clientName() {
+        return this.clientInstanceName;
+    }
+
+    injectEventListener() {
+        this.instance.on('qr', async (qr) => {
+            // MENGUBAH QRCODE MENJADI DATA URL BASE64
+            console.log('')
+            qrcode.generate(qr, { small: true })
+            console.log('update state qr')
+            console.log('')
+        });
+
+        this.instance.on('ready', async () => {
+            // UPDATE QRCODE PADA TABLE CLIENTS DATABASE
+            console.log('')
+            console.log('update state ready')
+            console.log('')
+        });
+    }
+
+    async init() {
+        this.injectEventListener()
+        await this.instance.initialize()
+    }
+}
 class ClientManager {
-    constructor (){
+    constructor() {
         this.clients = []
     }
 
@@ -68,5 +111,5 @@ class ClientManager {
 
 
 export {
-    ClientManager
+    ClientManager, WAClient
 }

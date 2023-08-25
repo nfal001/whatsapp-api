@@ -4,4 +4,4 @@ node_modules
 .wwebjs_cache
 local_auth
 local-auth
-storage/whatsapp
+storage/whatsapp/*
