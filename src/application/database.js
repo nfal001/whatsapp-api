@@ -26,14 +26,14 @@ prismaClient.$on("error", (e) => {
   logEmitter.error(e);
 });
 
-prismaClient.$on("info", (e) => {
-  logEmitter.info(e)
+prismaClient.$on("info", (data) => {
+  logEmitter.info(data)
 });
 
 prismaClient.$on("warn", (e) => {
   logEmitter.warn(e);
 });
 
-prismaClient.$on("query", (e) => {
-  logEmitter.info(e)
+prismaClient.$on("query", (data) => {
+  logEmitter.info(data)
 });
