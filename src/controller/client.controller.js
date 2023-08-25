@@ -18,15 +18,17 @@ const createNewClient = async (req, res, next) => {
 
 const initializeClient = async (req, res, next) => {
     try {
-        const name = WAClientInstanceManager[req.body.client_name].clientName
-        // clientService.initializeClientInstance(req.body.client_name)
+        const username = req.user.username;
+        const request = req.body;
+
+        const result = await clientService.initializeClientInstance(request, username);
 
         res.status(200).json({
             status: true,
-            message: `wa-client ${name} initialized`
-        })
+            data : result
+        });
     } catch (e) {
-        next(e)
+        next(e);
     }
 }
 

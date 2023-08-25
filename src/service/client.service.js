@@ -3,30 +3,18 @@ import { createClientValidation, sendMessageValidation } from "../validation/cli
 import { ResponseError } from "../error/response-error.js";
 import { getUserValidation } from "../validation/user.validation.js";
 import { validate } from "../validation/validation.js";
-import { ClientManager, WAClient } from "../whatsapp/whatsapp.js";
-
-
-const clientManager = new ClientManager();
-
-// FUNCTION UNTUK SEND MESSAGE
-async function sendTextMessage(clientName, targetNumber, textMessage) {
-    const clientInfo = clientManager.clients;
-
-    const client = clientInfo.find(c => c.name === clientName).client;
-
-    if (clientInfo) {
-        client.sendMessage(targetNumber, textMessage);
-    } else {
-        throw new ResponseError(400, "client is not found");
-    }
-}
+import { WAClient } from "../whatsapp/whatsapp.js";
+import { parse, stringify } from 'flatted';
 
 const createClient = async (request, username) => {
 
-    // VALIDASI CURRENT USERNAME DAN REQUEST
+    // VALIDASI CURRENT USERNAME DAN REQUEST BODY
     username = validate(getUserValidation, username);
     const client = validate(createClientValidation, request);
-    console.log(client)
+
+    // MENGAMBIL NILAI CLIENT NAME DARI REQUEST
+    const clientName = client.client_name;
+    
     // PENGECEKAN NAMA CLIENT DI TABLE CLIENT YANG DIMILIKI CURRENT USERNAME
     const countClient = await prismaClient.client.count({
         where: {
@@ -35,27 +23,63 @@ const createClient = async (request, username) => {
                     username: username
                 },
                 {
-                    client_name: client.client_name
+                    client_name: clientName
                 }
             ]
         }
     });
 
-    // JIKA TERDAPAT CLIENT YANG SAMA DI USERNAME TERSEBUT, MAKA AKAN MELEMPARKAN ERROR BARU
-    if (countClient === 1) {
-        throw new ResponseError(400, "clientname already exists");
+    if (countClient === 1){
+        const clientIdAndState = await prismaClient.client.findFirst({
+            where: {
+                AND: [
+                    {
+                        username: username
+                    },
+                    {
+                        client_name: clientName
+                    }
+                ]
+            },
+            select: {
+                id: true,
+                state: true
+            }
+        });
+    
+        console.log(clientIdAndState.id);
+
+        if(clientIdAndState.state === "READY"){
+            if(WAClientInstanceManager[clientName]){
+                throw new ResponseError(400, "client is running");
+            }
+            const uName = await addNewClient(clientName, clientIdAndState.id);
+            const parseUName = parse(uName);
+
+            const result = parseUName.instance.options.authStrategy.clientId;
+
+            return {
+                message: "Client created",
+                client_name: result
+            };
+        }
+
+        if(WAClientInstanceManager[clientName]){
+            throw new ResponseError(400, "clientname is already exists");
+        }
+
+        const uName = await addNewClient(clientName, clientIdAndState.id);
+        const parseUName = parse(uName);
+
+        const result = parseUName.instance.options.authStrategy.clientId;
+    
+        return {
+            message: "Client created",
+            client_name: result
+        };
     }
 
-    const clientName = client.client_name
-
-    const uName = await addNewClient(clientName)
-
-    return {
-        ok: 'test',
-        clientName: uName
-    };
-    // MENAMBAHKAN DATA CLIENT DI TABEL CLIENTS DATABASE
-    const id = await prismaClient.client.create({
+    const clientID = await prismaClient.client.create({
         data: {
             client_name: client.client_name,
             username: username,
@@ -66,31 +90,46 @@ const createClient = async (request, username) => {
         }
     });
 
-    // AKAN MENJALANKAN FUNCTION UNTUK MEMBUAT CLIENT BARU
-    await addNewClient(client.client_name, id.id);
+    // MEMANGGIL FUNCTION ADDNEWCLIENT UNTUK MEMBUAT CLIENT
+    const uName = await addNewClient(clientName, clientID.id);
 
-    // MENGEMBALIKAN DATA CLIENT YANG TELAH DIBUAT DARI DATABASE
-    return prismaClient.client.findFirst({
-        where: {
-            client_name: client.client_name
-        }
-    });
+    const parseUName = parse(uName);
+
+    const result = parseUName.instance.options.authStrategy.clientId;
+
+    return {
+        message: "Client created",
+        client_name: result
+    };
 }
 
 // FUNCTION UNTUK MENAMBAHKAN CLIENT
-async function addNewClient(clientName, id = '') {
+async function addNewClient(clientName, id) {
 
-    // const client = await clientManager.createClient(clientName, id);
-    const clientWA = new WAClient(clientName)
-    // await clientWA.init()
-    WAClientInstanceManager[clientName] = clientWA
-    console.log(WAClientInstanceManager);
-    return WAClientInstanceManager[clientName].instance.options;
-    // client.initialize();
+    const clientWA = new WAClient(clientName, id);
+    
+    WAClientInstanceManager[clientName] = clientWA;
+    
+    return stringify(WAClientInstanceManager[clientName]);
 }
 
-const initializeClientInstance = async (clientName) => {
-    await WAClientInstanceManager[clientName].init()
+
+const initializeClientInstance = async (request, username) => {
+
+    username = validate(getUserValidation, username);
+    const client = validate(createClientValidation, request);
+
+    if (WAClientInstanceManager[client.client_name]){
+        WAClientInstanceManager[client.client_name].init();
+    } else {
+        throw new ResponseError(400, "clientname is not found");
+    }
+    
+    
+
+    return {
+        message: `${client.client_name} initialized`
+    }
 }
 
 const getClientByName = async (request, username) => {
@@ -161,6 +200,18 @@ const sendMessage = async (request, username) => {
         text_message: request.text_message
     }
 
+}
+
+// FUNCTION UNTUK SEND MESSAGE
+async function sendTextMessage(clientName, targetNumber, textMessage) {
+
+
+
+    if (clientInfo) {
+        client.sendMessage(targetNumber, textMessage);
+    } else {
+        throw new ResponseError(400, "client is not found");
+    }
 }
 
 
