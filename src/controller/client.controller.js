@@ -18,29 +18,24 @@ const createNewClient = async (req, res, next) => {
 
 const initializeClient = async (req, res, next) => {
     try {
+        const username = req.user.username;
+        const request = req.body;
+
         const name = WAClientInstanceManager[req.body.client_name].clientName
+        const result = { username: username, client_name: request.client_name };
+
+        /**
+         * tidak perlu await, karena sepengetahuan saya, initialize tidak resolve sampai state QR code tercapai
+         */
         clientService.initializeClientInstance(req.body.client_name)
 
         res.status(200).json({
             status: true,
-            message: `wa-client ${name} initialized`
+            message: `wa-client ${name} initialized`,
+            data: result
         })
     } catch (e) {
         next(e)
-    }
-}
-
-const getCLientState = async (req, res, next) => {
-    try {
-        const name = WAClientInstanceManager[req.body.client_name].clientName
-        const status = await clientService.getInstanceState(name)
-        console.log(WAClientInstanceManager[req.body.client_name])
-        res.status(200).json({
-            status: true,
-            message: `wa-client ${name}, state: ${status}`
-        })
-    } catch (error) {
-        next(error)
     }
 }
 

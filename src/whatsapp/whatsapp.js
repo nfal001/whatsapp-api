@@ -1,22 +1,24 @@
+import config from "../config/config.js";
 import whatsapp from 'whatsapp-web.js';
 import { prismaClient } from '../application/database.js';
-import qrcode from 'qrcode-terminal';
+import qrcode from "qrcode";
 
 const { Client, LocalAuth } = whatsapp;
 
 class WAClient {
-
     /**
      * 
      * @param {string} clientName
+     * @param {string} id
      */
-    constructor(clientName) {
-        this.clientInstanceName = clientName
+    constructor(clientName, id) {
+        this.clientInstanceName = clientName;
+        this.id = id;
 
         const authLocal = new LocalAuth({
             clientId: this.clientInstanceName,
-            dataPath: process.cwd() + "/storage/whatsapp/local_auth/",
-        })
+            dataPath: process.cwd() + (config.app.localAuth || "/storage/whatsapp/local_auth/")
+        });
 
         this.instance = new Client({
             authStrategy: authLocal,
@@ -25,7 +27,7 @@ class WAClient {
                 headless: false,
                 // executablePath: "X:/Users/####/AppData/Local/Chromium/Application/chrome.exe"
             }
-        })
+        });
     }
 
     injectEventListener(callback) {
@@ -69,6 +71,7 @@ class WAClient {
 
             } catch (error) {
                 console.log(error.message)
+
             }
         });
 
@@ -79,6 +82,30 @@ class WAClient {
             console.log('')
 
             await this.setStatus('sighing shell customer rearview')
+            // MENGUBAH QRCODE MENJADI DATA URL BASE64
+            const qrCodeURL = await qrcode.toDataURL(qr);
+            // UPDATE STATE QR CODE PADA TABLE CLIENTS DI DATABASE
+            await prismaClient.client.update({
+                data: {
+                    state: "ON QRCODE",
+                    qr_code: qrCodeURL
+                },
+                where: {
+                    id: this.id
+                }
+            });
+        });
+        this.instance.on('ready', async () => {
+            // UPDATE STATE READY PADA TABLE CLIENTS DI DATABASE
+            await prismaClient.client.update({
+                data: {
+                    state: "READY",
+                    qr_code: null
+                },
+                where: {
+                    id: this.id
+                }
+            });
         });
 
         this.instance.on('message', async (message) => {
@@ -129,7 +156,6 @@ class WAClient {
     async getState() {
         return await this.instance.getState()
     }
-
     /**
      * 
      * @returns {Promise<void>}
@@ -148,70 +174,8 @@ class WAClient {
     async sendMessage(chatId, content, options) {
         return await this.instance.sendMessage(chatId, content, options)
     }
-
 }
-class ClientManager {
-    constructor() {
-        this.clients = []
-    }
-
-    createClient = async (clientName, id) => {
-
-        // MEMBUAT OBJECT CLIENT
-        const client = new Client({
-            authStrategy: new LocalAuth({
-                clientId: clientName,
-                dataPath: "./local_auth/"
-            }),
-            puppeteer: {
-                args: ['--no-sandbox'],
-                headless: false
-            }
-        });
-
-        client.on('qr', async (qr) => {
-
-            // MENGUBAH QRCODE MENJADI DATA URL BASE64
-            const qrCodeURL = await qrcode.toDataURL(qr);
-
-            // UPDATE QRCODE PADA TABLE CLIENTS DATABASE
-            await prismaClient.client.update({
-                data: {
-                    state: "ON QRCODE",
-                    qr_code: qrCodeURL
-                },
-                where: {
-                    id: id
-                }
-            });
-        });
-
-        client.on('ready', async () => {
-            // UPDATE QRCODE PADA TABLE CLIENTS DATABASE
-            await prismaClient.client.update({
-                data: {
-                    state: "READY",
-                    qr_code: null
-                },
-                where: {
-                    id: id
-                }
-            });
-        });
-
-        const clientData = {
-            name: clientName,
-            client: client
-        }
-
-        this.clients.push(clientData);
-
-        return client;
-    }
-}
-
-
 
 export {
-    ClientManager, WAClient
+    WAClient
 }
