@@ -26,7 +26,7 @@ const createClient = async (request, username) => {
     // VALIDASI CURRENT USERNAME DAN REQUEST
     username = validate(getUserValidation, username);
     const client = validate(createClientValidation, request);
-    console.log(client)
+
     // PENGECEKAN NAMA CLIENT DI TABLE CLIENT YANG DIMILIKI CURRENT USERNAME
     const countClient = await prismaClient.client.count({
         where: {
@@ -52,7 +52,7 @@ const createClient = async (request, username) => {
 
     return {
         ok: 'test',
-        clientName: uName
+        clientName: uName.clientName
     };
     // MENAMBAHKAN DATA CLIENT DI TABEL CLIENTS DATABASE
     const id = await prismaClient.client.create({
@@ -85,12 +85,16 @@ async function addNewClient(clientName, id = '') {
     // await clientWA.init()
     WAClientInstanceManager[clientName] = clientWA
     console.log(WAClientInstanceManager);
-    return WAClientInstanceManager[clientName].instance.options;
+    return WAClientInstanceManager[clientName];
     // client.initialize();
 }
 
 const initializeClientInstance = async (clientName) => {
     await WAClientInstanceManager[clientName].init()
+}
+
+const getInstanceState = async (clientName) => {
+    return await WAClientInstanceManager[clientName].getState()
 }
 
 const getClientByName = async (request, username) => {
@@ -169,5 +173,6 @@ export default {
     initializeClientInstance,
     getClientByName,
     getAllClient,
-    sendMessage
+    sendMessage,
+    getInstanceState
 }

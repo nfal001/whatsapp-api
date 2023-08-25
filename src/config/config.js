@@ -6,6 +6,13 @@ const config = {
         env: APP_ENV,
         DebugMode: DEBUG,
         port: PORT
+    },
+    bot: {
+        prefix: 'y!',
+        command: {
+            ping: 'ping',
+            timeNow: 'now'
+        }
     }
 }
 export default config 

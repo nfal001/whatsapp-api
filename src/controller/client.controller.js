@@ -19,7 +19,7 @@ const createNewClient = async (req, res, next) => {
 const initializeClient = async (req, res, next) => {
     try {
         const name = WAClientInstanceManager[req.body.client_name].clientName
-        // clientService.initializeClientInstance(req.body.client_name)
+        clientService.initializeClientInstance(req.body.client_name)
 
         res.status(200).json({
             status: true,
@@ -27,6 +27,20 @@ const initializeClient = async (req, res, next) => {
         })
     } catch (e) {
         next(e)
+    }
+}
+
+const getCLientState = async (req, res, next) => {
+    try {
+        const name = WAClientInstanceManager[req.body.client_name].clientName
+        const status = await clientService.getInstanceState(name)
+        console.log(WAClientInstanceManager[req.body.client_name])
+        res.status(200).json({
+            status: true,
+            message: `wa-client ${name}, state: ${status}`
+        })
+    } catch (error) {
+        next(error)
     }
 }
 
@@ -155,4 +169,5 @@ export default {
     sendMedia,
     sendButton,
     setClientStatus,
+    getCLientState
 }
