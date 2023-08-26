@@ -26,6 +26,7 @@ const initializeClient = async (req, res, next) => {
 
         /**
          * tidak perlu await, karena sepengetahuan saya, initialize tidak resolve sampai state QR code tercapai
+         * cukup send response initialized
          */
         clientService.initializeClientInstance(req.body.client_name)
 
@@ -35,6 +36,20 @@ const initializeClient = async (req, res, next) => {
             data: result
         })
     } catch (e) {
+        next(e)
+    }
+}
+
+const getClientState = async (req, res, next) => {
+    try {
+
+        const result = await clientService.getInstanceState(req.body.client_name)
+
+        res.status(200).json({
+            status: true,
+            data: result
+        });
+    } catch (error) {
         next(e)
     }
 }
@@ -164,5 +179,5 @@ export default {
     sendMedia,
     sendButton,
     setClientStatus,
-    getCLientState
+    getClientState
 }

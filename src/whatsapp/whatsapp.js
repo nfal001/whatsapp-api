@@ -17,7 +17,7 @@ class WAClient {
 
         const authLocal = new LocalAuth({
             clientId: this.clientInstanceName,
-            dataPath: process.cwd() + (config.app.localAuth || "/storage/whatsapp/local_auth/")
+            dataPath: config.app.localAuth
         });
 
         this.instance = new Client({
@@ -63,11 +63,23 @@ class WAClient {
             try {
                 // MENGUBAH QRCODE MENJADI DATA URL BASE64
                 console.log('')
-                qrcode.generate(qr, { small: true })
                 console.log('update state qr')
                 console.log('')
                 console.log(WAClientInstanceManager[this.clientInstanceName])
                 console.log('')
+
+                // MENGUBAH QRCODE MENJADI DATA URL BASE64
+                const qrCodeURL = await qrcode.toDataURL(qr);
+                // UPDATE STATE QR CODE PADA TABLE CLIENTS DI DATABASE
+                await prismaClient.client.update({
+                    data: {
+                        state: "ON QRCODE",
+                        qr_code: qrCodeURL
+                    },
+                    where: {
+                        id: this.id
+                    }
+                });
 
             } catch (error) {
                 console.log(error.message)
@@ -82,20 +94,6 @@ class WAClient {
             console.log('')
 
             await this.setStatus('sighing shell customer rearview')
-            // MENGUBAH QRCODE MENJADI DATA URL BASE64
-            const qrCodeURL = await qrcode.toDataURL(qr);
-            // UPDATE STATE QR CODE PADA TABLE CLIENTS DI DATABASE
-            await prismaClient.client.update({
-                data: {
-                    state: "ON QRCODE",
-                    qr_code: qrCodeURL
-                },
-                where: {
-                    id: this.id
-                }
-            });
-        });
-        this.instance.on('ready', async () => {
             // UPDATE STATE READY PADA TABLE CLIENTS DI DATABASE
             await prismaClient.client.update({
                 data: {
@@ -109,7 +107,7 @@ class WAClient {
         });
 
         this.instance.on('message', async (message) => {
-            await this.instance.sendPresenceAvailable()
+            await this.sendPresenceAvailable()
             if (message.body === "!ping") {
                 setTimeout(async () => {
                     await message.reply('pong');

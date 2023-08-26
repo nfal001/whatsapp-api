@@ -12,6 +12,8 @@ const createClient = async (request, username) => {
     username = validate(getUserValidation, username);
     const client = validate(createClientValidation, request);
 
+    // const client = request
+
     // MENGAMBIL NILAI CLIENT NAME DARI REQUEST
     const clientName = client.client_name;
 
@@ -91,6 +93,8 @@ const createClient = async (request, username) => {
         }
     });
 
+    // uName boleh diganti namanya yang lebih cocok sebagai representasi
+
     // MEMANGGIL FUNCTION ADDNEWCLIENT UNTUK MEMBUAT CLIENT
     const uName = await addNewClient(clientName, clientID.id);
 
@@ -114,11 +118,14 @@ async function addNewClient(clientName, id) {
     return stringify(WAClientInstanceManager[clientName]);
 }
 
-const initializeClientInstance = async (request, username) => {
+const initializeClientInstance = async (requestClientName, username) => {
 
     username = validate(getUserValidation, username);
-    const client = validate(createClientValidation, request);
+    const client = validate(createClientValidation, requestClientName);
 
+    // const client = { client_name: requestClientName }
+
+    console.log(client)
     if (WAClientInstanceManager[client.client_name]) {
         WAClientInstanceManager[client.client_name].init();
     } else {
@@ -131,6 +138,11 @@ const initializeClientInstance = async (request, username) => {
     }
 }
 
+/**
+ * 
+ * @param {string} clientName 
+ * @returns {Promise<any>}
+ */
 const getInstanceState = async (clientName) => {
     return await WAClientInstanceManager[clientName].getState()
 }
