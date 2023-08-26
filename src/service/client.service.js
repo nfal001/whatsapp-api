@@ -12,9 +12,11 @@ const createClient = async (request, username) => {
     username = validate(getUserValidation, username);
     const client = validate(createClientValidation, request);
 
+    // const client = request
+
     // MENGAMBIL NILAI CLIENT NAME DARI REQUEST
     const clientName = client.client_name;
-    
+
     // PENGECEKAN NAMA CLIENT DI TABLE CLIENT YANG DIMILIKI CURRENT USERNAME
     const countClient = await prismaClient.client.count({
         where: {
@@ -29,7 +31,7 @@ const createClient = async (request, username) => {
         }
     });
 
-    if (countClient === 1){
+    if (countClient === 1) {
         const clientIdAndState = await prismaClient.client.findFirst({
             where: {
                 AND: [
@@ -46,14 +48,15 @@ const createClient = async (request, username) => {
                 state: true
             }
         });
-    
+
         console.log(clientIdAndState.id);
 
-        if(clientIdAndState.state === "READY"){
-            if(WAClientInstanceManager[clientName]){
+        if (clientIdAndState.state === "READY") {
+            if (WAClientInstanceManager[clientName]) {
                 throw new ResponseError(400, "client is running");
             }
             const uName = await addNewClient(clientName, clientIdAndState.id);
+
             const parseUName = parse(uName);
 
             const result = parseUName.instance.options.authStrategy.clientId;
@@ -64,7 +67,7 @@ const createClient = async (request, username) => {
             };
         }
 
-        if(WAClientInstanceManager[clientName]){
+        if (WAClientInstanceManager[clientName]) {
             throw new ResponseError(400, "clientname is already exists");
         }
 
@@ -72,7 +75,7 @@ const createClient = async (request, username) => {
         const parseUName = parse(uName);
 
         const result = parseUName.instance.options.authStrategy.clientId;
-    
+
         return {
             message: "Client created",
             client_name: result
@@ -89,6 +92,8 @@ const createClient = async (request, username) => {
             id: true
         }
     });
+
+    // uName boleh diganti namanya yang lebih cocok sebagai representasi
 
     // MEMANGGIL FUNCTION ADDNEWCLIENT UNTUK MEMBUAT CLIENT
     const uName = await addNewClient(clientName, clientID.id);
@@ -107,29 +112,39 @@ const createClient = async (request, username) => {
 async function addNewClient(clientName, id) {
 
     const clientWA = new WAClient(clientName, id);
-    
+
     WAClientInstanceManager[clientName] = clientWA;
-    
+
     return stringify(WAClientInstanceManager[clientName]);
 }
 
-
-const initializeClientInstance = async (request, username) => {
+const initializeClientInstance = async (requestClientName, username) => {
 
     username = validate(getUserValidation, username);
-    const client = validate(createClientValidation, request);
+    const client = validate(createClientValidation, requestClientName);
 
-    if (WAClientInstanceManager[client.client_name]){
+    // const client = { client_name: requestClientName }
+
+    console.log(client)
+    if (WAClientInstanceManager[client.client_name]) {
         WAClientInstanceManager[client.client_name].init();
     } else {
         throw new ResponseError(400, "clientname is not found");
     }
-    
-    
+
 
     return {
         message: `${client.client_name} initialized`
     }
+}
+
+/**
+ * 
+ * @param {string} clientName 
+ * @returns {Promise<any>}
+ */
+const getInstanceState = async (clientName) => {
+    return await WAClientInstanceManager[clientName].getState()
 }
 
 const getClientByName = async (request, username) => {
@@ -205,8 +220,6 @@ const sendMessage = async (request, username) => {
 // FUNCTION UNTUK SEND MESSAGE
 async function sendTextMessage(clientName, targetNumber, textMessage) {
 
-
-
     if (clientInfo) {
         client.sendMessage(targetNumber, textMessage);
     } else {
@@ -220,5 +233,6 @@ export default {
     initializeClientInstance,
     getClientByName,
     getAllClient,
-    sendMessage
+    sendMessage,
+    getInstanceState
 }

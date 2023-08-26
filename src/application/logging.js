@@ -10,15 +10,9 @@ const logger = winston.createLogger({
 });
 
 const logEmitter = {
-    info: (e) => {
-        config.app.DebugMode ? logger.info(e) : ''
-    },
-    warn: (e) => {
-        config.app.DebugMode ? logger.warn(e) : ''
-    },
-    error: (e) => {
-        config.app.DebugMode ? logger.error(e) : ''
-    }
+    info: (e) => config.app.DebugMode ? logger.info(e) : '',
+    warn: (e) => config.app.DebugMode ? logger.warn(e) : '',
+    error: (e) => config.app.DebugMode ? logger.error(e) : ''
 }
 
 export {
