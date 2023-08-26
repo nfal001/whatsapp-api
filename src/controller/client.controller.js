@@ -28,15 +28,19 @@ const initializeClient = async (req, res, next) => {
          * tidak perlu await, karena sepengetahuan saya, initialize tidak resolve sampai state QR code tercapai
          * cukup send response initialized
          */
-        clientService.initializeClientInstance(req.body.client_name)
+
+        /*
+            initializeClientInstance menerima 2 parameter yaitu user yang login dan object request
+        */
+        clientService.initializeClientInstance(request, username);
 
         res.status(200).json({
             status: true,
             message: `wa-client ${name} initialized`,
             data: result
-        })
+        });
     } catch (e) {
-        next(e)
+        next(e);
     }
 }
 

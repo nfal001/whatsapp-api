@@ -120,6 +120,7 @@ async function addNewClient(clientName, id) {
 
 const initializeClientInstance = async (requestClientName, username) => {
 
+    // VALIDASI REQUEST BODY
     username = validate(getUserValidation, username);
     const client = validate(createClientValidation, requestClientName);
 
@@ -145,7 +146,7 @@ const initializeClientInstance = async (requestClientName, username) => {
  * @returns {Promise<any>}
  */
 const getInstanceState = async (clientName) => {
-    return await WAClientInstanceManager[clientName].getState()
+    return await WAClientInstanceManager[clientName].getState();
 }
 
 const getClientByName = async (request, username) => {
