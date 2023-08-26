@@ -125,8 +125,6 @@ const initializeClientInstance = async (request, username) => {
         throw new ResponseError(400, "clientname is not found");
     }
     
-    
-
     return {
         message: `${client.client_name} initialized`
     }
