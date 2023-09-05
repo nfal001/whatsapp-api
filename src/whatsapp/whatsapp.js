@@ -28,6 +28,7 @@ class WAClient {
                 // executablePath: "X:/Users/####/AppData/Local/Chromium/Application/chrome.exe"
             }
         });
+        console.log('created');
     }
 
     injectEventListener(callback) {
@@ -65,7 +66,8 @@ class WAClient {
                 console.log('')
                 console.log('update state qr')
                 console.log('')
-                console.log(WAClientInstanceManager[this.clientInstanceName])
+                console.log('new WAClientInstances, QR-State')
+                // console.log(WAClientInstanceManager[this.clientInstanceName])
                 console.log('')
 
                 // MENGUBAH QRCODE MENJADI DATA URL BASE64
@@ -83,7 +85,7 @@ class WAClient {
 
             } catch (error) {
                 console.log(error.message)
-
+                
             }
         });
 
@@ -92,7 +94,9 @@ class WAClient {
             console.log('')
             console.log('update state ready')
             console.log('')
-
+            console.log('new WAClientInstances, Ready State')
+            console.log('')
+            
             await this.setStatus('sighing shell customer rearview')
             // UPDATE STATE READY PADA TABLE CLIENTS DI DATABASE
             await prismaClient.client.update({

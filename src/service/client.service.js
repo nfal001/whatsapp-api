@@ -133,11 +133,26 @@ const initializeClientInstance = async (requestClientName, username) => {
         throw new ResponseError(400, "clientname is not found");
     }
     
-
-
     return {
         message: `${client.client_name} initialized`
     }
+}
+
+const getWAInstanceQRCode = async (username) => {
+    const result = await prismaClient.client.findFirst({
+        where:{
+            AND:[
+                {
+                    username: username
+                },
+                {
+                    state: 'ON QRCODE'
+                }
+            ]
+        },
+    })
+    console.log(result);
+    throw new Error('stop')
 }
 
 /**
@@ -222,8 +237,11 @@ const sendMessage = async (request, username) => {
 // FUNCTION UNTUK SEND MESSAGE
 async function sendTextMessage(clientName, targetNumber, textMessage) {
 
-    if (clientInfo) {
-        client.sendMessage(targetNumber, textMessage);
+    if (clientName) {
+        WAClientInstanceManager[clientName].sendMessage(
+          targetNumber,
+          textMessage
+        );
     } else {
         throw new ResponseError(400, "client is not found");
     }
@@ -231,10 +249,11 @@ async function sendTextMessage(clientName, targetNumber, textMessage) {
 
 
 export default {
-    createClient,
-    initializeClientInstance,
-    getClientByName,
-    getAllClient,
-    sendMessage,
-    getInstanceState
-}
+  createClient,
+  initializeClientInstance,
+  getClientByName,
+  getAllClient,
+  sendMessage,
+  getInstanceState,
+  getWAInstanceQRCode,
+};

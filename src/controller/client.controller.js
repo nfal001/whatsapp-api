@@ -59,6 +59,7 @@ const getQRCode = async (req, res, next) => {
         const username = req.user.username;
         const requestQuery = req.query;
 
+        const qrcode = clientService.getWAInstanceQRCode(username)
         // - prisma get client latest_qr_code
         // clients.latest_qr_code (type dataurl) to Buffer or dataUrl
         // const result = getqr

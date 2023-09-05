@@ -4,44 +4,37 @@ import clientController from "../controller/client.controller.js";
 import testController from '../controller/test.controller.js';
 import { authMiddleware } from "../middleware/auth-middleware.js";
 
+// route user set
+const userRouterSet = express.Router();
+userRouterSet.get("/current", userController.get);
+userRouterSet.patch("/current", userController.update);
+userRouterSet.delete("/logout", userController.logout);
+
+// wrap route user set
 const userRouter = express.Router();
-const userRoute = userRouter.use('/api/users', authMiddleware);
-userRoute.get("/current", userController.get);
-userRoute.patch("/current", userController.update);
-userRoute.delete("/logout", userController.logout);
+userRouter.use('/api/users', authMiddleware, userRouterSet);
 
-const clientRouter = express.Router();
-const clientRoute = clientRouter.use('/api/clients', authMiddleware);
-clientRoute.use('/api/clients', authMiddleware);
-clientRoute.get("/", clientController.getAllClient);
-clientRoute.post("/", clientController.createNewClient);
-clientRoute.get("/profile/:client_name", clientController.getClientByName);
-clientRoute.get("/qr", clientController.getQRCode);
-clientRoute.post("/sendmessage", clientController.sendMessage);
-clientRoute.post("/init", clientController.initializeClient);
-clientRoute.post("/state", clientController.getClientState);
-clientRoute.post("/sendmedia", clientController.sendMedia);
-clientRoute.post("/sendbutton", clientController.sendButton);
-clientRoute.post("/setclientstatus", clientController.setClientStatus);
-clientRoute.get("/getuserpicture", clientController.getUserPicture);
+// route client set
+const clientRouterSet = express.Router();
+clientRouterSet.get("/", clientController.getAllClient);
+clientRouterSet.post("/", clientController.createNewClient);
+clientRouterSet.get("/profile/:client_name", clientController.getClientByName);
+clientRouterSet.get("/qr", clientController.getQRCode);
+clientRouterSet.post("/sendmessage", clientController.sendMessage);
+clientRouterSet.post("/init", clientController.initializeClient);
+clientRouterSet.post("/state", clientController.getClientState);
+clientRouterSet.post("/sendmedia", clientController.sendMedia);
+clientRouterSet.post("/sendbutton", clientController.sendButton);
+clientRouterSet.post("/setclientstatus", clientController.setClientStatus);
+clientRouterSet.get("/getuserpicture", clientController.getUserPicture);
 
+// wrap route client set
+const clientRouter = express.Router()
+clientRouter.use('/api/clients',authMiddleware,clientRouterSet)
 
-const clientsRouter = express.Router()
-// const clientsRoute = clientsRouter.use('/api/client')
-
-clientsRouter.get('/api/client', (_req, res) => {
-    res.end('client', 'ascii')
-})
-clientsRouter.get('/api/client/:client_id', (req, res) => {
-    res.end(`clientID: ${req.params.client_id}`, 'ascii')
-})
-
-const testRouter = express.Router();
-testRouter.get('/api/v1/test', testController.securityTest);
 
 
 export {
     userRouter,
     clientRouter,
-    testRouter
 }
