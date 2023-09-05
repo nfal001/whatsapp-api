@@ -11,7 +11,7 @@ const config = {
         localAuth: LOCAL_AUTH
     },
     bot: {
-        prefix: 'y!',
+        prefix: 'w!',
         command: {
             ping: 'ping',
             timeNow: 'now'
