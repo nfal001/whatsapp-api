@@ -1,8 +1,11 @@
 import { prismaClient } from "../application/database.js";
 
+/**
+ * @type {import("express").RequestHandler} 
+ */
 export const authMiddleware = async (req, res, next) => {
-    const token = req.get("Authorization");
-    const authToken = token.split(" ")
+    const token = req.header.Authorization ?? '';
+    const authToken = token.split(" ");
 
     if (!token || authToken[0] !== 'Bearer') {
         res.status(401).json({
