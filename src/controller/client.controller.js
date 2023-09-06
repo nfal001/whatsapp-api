@@ -57,29 +57,29 @@ const initializeClient = async (req, res, next) => {
 const getQRCode = async (req, res, next) => {
     try {
         const username = req.user.username;
-        const requestQuery = req.query;
+        const clientName = req.query.clientname;
 
-        const qrcode = clientService.getWAInstanceQRCode(username)
-        // - prisma get client latest_qr_code
-        // clients.latest_qr_code (type dataurl) to Buffer or dataUrl
-        // const result = getqr
+        const result = await clientService.getWAInstanceQRCode(username,clientName)
 
-        // TODO
-        if (requestQuery.json) {
-            res.status(200).json({
-                status: true,
-                message: `Success`,
-                data: {
-                    type: 'dataUrl',
-                    imageData: 'data'
-                }
-                // data: result
-            });
-        } else {
-            // response decoded dataurl data image to buffer,
-            // res.end()
+        if (!result || !result.qr_code){
+            throw new Error('client not available or not in qr state')
         }
+        const qrCode = result.qr_code.split(',')
+        const meta = qrCode[0].replace('data:','').split(';')[0]
 
+        if (req.query.image) {
+            return res.status(200).contentType(meta)
+            .end(qrCode[1],'base64url')
+        } else {
+            return res.status(200).json({
+              status: true,
+              message: `Success`,
+              data: {
+                type: "base64url",
+                imageData: result.qr_code,
+              },
+            });
+        }
     } catch (error) {
         next(error)
     }
@@ -238,6 +238,20 @@ const getUserPicture = async (req, res, next) => {
         next(e);
     }
 }
+/**
+ * @type {import("express").RequestHandler} 
+ */
+const destroyClientSession = async (req, res, next) => {
+    try {
+        const username = req.user.username;
+        const data = req.body;
+    
+        const destroy = await clientService.destroySession(data.client_name,username)
+        return res.end('ended','ascii')
+    } catch (error) {
+        next(e)
+    }
+}
 
 export default {
     createNewClient,
@@ -250,5 +264,6 @@ export default {
     sendButton,
     setClientStatus,
     getClientState,
-    getQRCode
-}
+    getQRCode,
+    destroyClientSession,
+};
