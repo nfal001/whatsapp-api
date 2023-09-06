@@ -30,11 +30,10 @@ const register = async (request) => {
 }
 
 const login = async (request) => {
-    const loginResquest = validate(loginUserValidation, request);
 
-    const user = await prismaClient.user.findUnique({
+    const storedUser = await prismaClient.user.findUnique({
         where: {
-            username: loginResquest.username
+            username: request.username
         },
         select: {
             username: true,
@@ -42,11 +41,13 @@ const login = async (request) => {
         }
     });
 
-    if (!user) {
-        throw new ResponseError(401, "Username or password wrong");
+    if (!storedUser) {
+      throw new ResponseError(401, "Username or password wrong");
     }
-
-    const isPasswordValid = bcrypt.compare(loginResquest.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      request.password,
+      storedUser.password
+    );
 
     if (!isPasswordValid) {
         throw new ResponseError(401, "Username or password wrong");
@@ -56,15 +57,15 @@ const login = async (request) => {
     const encode = new Buffer.from(token)
 
     return prismaClient.user.update({
-        data: {
-            token: encode.toString('base64')
-        },
-        where: {
-            username: user.username
-        },
-        select: {
-            token: true
-        }
+      data: {
+        token: encode.toString("base64"),
+      },
+      where: {
+        username: storedUser.username,
+      },
+      select: {
+        token: true,
+      },
     });
 }
 
