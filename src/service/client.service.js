@@ -138,7 +138,7 @@ const initializeClientInstance = async (requestClientName, username) => {
     }
 }
 
-const getWAInstanceQRCode = async (username) => {
+const getWAInstanceQRCode = async (username,clientName) => {
     const result = await prismaClient.client.findFirst({
         where:{
             AND:[
@@ -146,13 +146,15 @@ const getWAInstanceQRCode = async (username) => {
                     username: username
                 },
                 {
+                    client_name: clientName
+                },
+                {
                     state: 'ON QRCODE'
                 }
             ]
         },
     })
-    console.log(result);
-    throw new Error('stop')
+    return result
 }
 
 /**
@@ -247,6 +249,25 @@ async function sendTextMessage(clientName, targetNumber, textMessage) {
     }
 }
 
+async function destroySession(clientName,username) {
+    const destroyWAClient = await WAClientInstanceManager[clientName].destroySession()
+    console.log(destroySession);
+    const clientDbState = prismaClient.client.delete({
+        where: {
+            AND:[
+                {
+                    username: username,
+                }
+                ,{
+                    client_name: clientName
+                }
+            ]
+        }
+    })
+    console.log(clientDbState);
+    return destroyWAClient
+}
+
 
 export default {
   createClient,
@@ -256,4 +277,5 @@ export default {
   sendMessage,
   getInstanceState,
   getWAInstanceQRCode,
+  destroySession
 };
