@@ -21,13 +21,15 @@ model User {
 }
 
 model Client {
-  id          Int     @id @default(autoincrement())
-  client_name String  @db.VarChar(100)
-  qr_code     String? @db.Text()
-  state       String? @db.VarChar(20)
-  foward      Int     @default(0) @db.SmallInt
-  username    String  @db.VarChar(100)
-  user        User    @relation(fields: [username], references: [username])
+  id               Int     @id @default(autoincrement())
+  client_name      String  @db.VarChar(100)
+  state            String? @db.VarChar(20)
+  foward           Int     @default(0) @db.SmallInt
+  username         String  @db.VarChar(100)
+  is_session_saved Boolean @default(false) @db.Boolean @map("isSessionSaved")
+  last_activity    DateTime? @map("lastActivity")
+  qr_code          String? @db.Text()
+  user             User    @relation(fields: [username], references: [username])
 
   @@map("clients")
 }
