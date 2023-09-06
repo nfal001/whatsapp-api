@@ -1,4 +1,11 @@
 import userService from "../service/user.service.js"
+import {
+  getUserValidation,
+  loginUserValidation,
+  registerUserValidation,
+  updateUserValidation,
+} from "../validation/user.validation.js";
+import { validate } from "../validation/validation.js";
 
 const register = async (req, res, next) => {
     try {
@@ -14,7 +21,10 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
     try {
-        const result = await userService.login(req.body);
+        const validated = validate(loginUserValidation, req.body);
+
+        const result = await userService.login(validated);
+
         res.status(200).json({
             status: true,
             data: result
