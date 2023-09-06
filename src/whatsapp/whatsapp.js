@@ -1,5 +1,6 @@
 import config from "../config/config.js";
 import whatsapp from 'whatsapp-web.js';
+import { onStateChanged } from './wa-state-sniffer.js';
 import { prismaClient } from '../application/database.js';
 import qrcode from "qrcode";
 
@@ -26,52 +27,38 @@ class WAClient {
                 args: ['--no-sandbox'],
                 headless: false,
                 // executablePath: "X:/Users/####/AppData/Local/Chromium/Application/chrome.exe"
-            }
+            },
+            qrMaxRetries: 3,
+            authTimeoutMs: 60000
         });
-        console.log('created');
+        console.log(clientName, ' created');
     }
 
     injectEventListener(callback) {
 
-        /**
-         * 
-         * pada method injectEventListener ini,
-         * kita bisa menambah sesuatu semau kita dengan memanfaatkan callback ,
-         * 
-         * plan:
-         * 
-         * injectEventListener((callback) => {
-         * 
-         *      this.instance.on('qr', async (qr) => {
-         *       try {
-         *           // MENGUBAH QRCODE MENJADI DATA URL BASE64
-         *           console.log('')
-         *           qrcode.generate(qr, { small: true })
-         *           console.log('update state qr')
-         *           console.log('')
-         *           console.log(WAClientInstanceManager[this.clientInstanceName])
-         *           console.log('')
-         *       
-         *       } catch (error) {
-         *           console.log(error.message)
-         *       }
-         *  });
-         * 
-         * })
-         * 
-         */
+        // (callback)()
+
+        this.instance.on('change_state', (state)=>{
+            console.log('changed state', state);
+        })
+        
+        // this.instance.on('change_state', onStateChanged)
+
         this.instance.on('qr', async (qr) => {
             try {
                 // MENGUBAH QRCODE MENJADI DATA URL BASE64
                 console.log('')
-                console.log('update state qr')
+                console.log('WAClientInstances QR-State for ', this.clientName)
                 console.log('')
-                console.log('new WAClientInstances, QR-State')
-                // console.log(WAClientInstanceManager[this.clientInstanceName])
-                console.log('')
+
+                // QR-Code in terminal
+                qrcode.toString(qr,{type:'terminal',small:true},(err,url)=>{
+                    console.log(url);
+                })
 
                 // MENGUBAH QRCODE MENJADI DATA URL BASE64
                 const qrCodeURL = await qrcode.toDataURL(qr);
+
                 // UPDATE STATE QR CODE PADA TABLE CLIENTS DI DATABASE
                 await prismaClient.client.update({
                     data: {
@@ -85,7 +72,6 @@ class WAClient {
 
             } catch (error) {
                 console.log(error.message)
-                
             }
         });
 
@@ -98,6 +84,7 @@ class WAClient {
             console.log('')
             
             await this.setStatus('sighing shell customer rearview')
+
             // UPDATE STATE READY PADA TABLE CLIENTS DI DATABASE
             await prismaClient.client.update({
                 data: {
@@ -118,6 +105,10 @@ class WAClient {
                 }, 400)
             }
             console.log(message)
+        })
+
+        this.instance.on('disconnected', async function (reason) {
+            console.log('disconnected ',reason);
         })
     }
 
@@ -175,6 +166,10 @@ class WAClient {
      */
     async sendMessage(chatId, content, options) {
         return await this.instance.sendMessage(chatId, content, options)
+    }
+
+    async destroySession() {
+        return await this.instance.destroy()
     }
 }
 
