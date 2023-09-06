@@ -52,9 +52,6 @@ const createClient = async (request, username) => {
         console.log(clientIdAndState.id);
 
         if (clientIdAndState.state === "READY") {
-            if (WAClientInstanceManager[clientName]) {
-                throw new ResponseError(400, "client is running");
-            }
             const uName = await addNewClient(clientName, clientIdAndState.id);
 
             const parseUName = parse(uName);
@@ -127,10 +124,10 @@ const initializeClientInstance = async (requestClientName, username) => {
     // const client = { client_name: requestClientName }
 
     console.log(client)
-    if (WAClientInstanceManager[client.client_name]) {
+    if (WAClientInstanceManager[client.client_name]?.state == 'CREATED') {
         WAClientInstanceManager[client.client_name].init();
     } else {
-        throw new ResponseError(400, "clientname is not found");
+        throw new ResponseError(400, "clientname is not found or not in CREATED state");
     }
     
     return {

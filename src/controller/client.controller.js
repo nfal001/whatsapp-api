@@ -6,14 +6,22 @@ import clientService from "../service/client.service.js";
 const createNewClient = async (req, res, next) => {
     try {
         const username = req.user.username;
-        const request = req.body;
+        const payload = req.body;
 
-        const result = await clientService.createClient(request, username);
+        if (!WAClientInstanceManager[payload.client_name]) {
+            const result = await clientService.createClient(payload, username);
 
-        res.status(200).json({
-            status: true,
-            data: result
-        });
+            return res.status(200).json({
+                status: true,
+                data: result
+            });
+        }
+
+        return res.status(422).json({
+            status: false,
+            reason: 'client.exist',
+            message: "cannot create client because client was exist"
+        })
     } catch (e) {
         next(e);
     }
@@ -38,13 +46,16 @@ const initializeClient = async (req, res, next) => {
         /*
             initializeClientInstance menerima 2 parameter yaitu user yang login dan object request
         */
-        clientService.initializeClientInstance(request, username);
+        const clientInit = await clientService.initializeClientInstance(request, username);
+        if (clientInit) {
+            return res.status(200).json({
+                status: true,
+                message: `wa-client ${name} initialized`,
+                data: result
+            });
+        }
 
-        res.status(200).json({
-            status: true,
-            message: `wa-client ${name} initialized`,
-            data: result
-        });
+        // throw Error(clientInit.message)
     } catch (e) {
         next(e);
     }
