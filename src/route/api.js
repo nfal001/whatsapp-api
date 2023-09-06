@@ -27,6 +27,7 @@ clientRouterSet.post("/sendmedia", clientController.sendMedia);
 clientRouterSet.post("/sendbutton", clientController.sendButton);
 clientRouterSet.post("/setclientstatus", clientController.setClientStatus);
 clientRouterSet.get("/getuserpicture", clientController.getUserPicture);
+clientRouterSet.delete("/destroy", clientController.destroyClientSession);
 
 // wrap route client set
 const clientRouter = express.Router()
