@@ -28,3 +28,17 @@ export const authMiddleware = async (req, res, next) => {
         }
     }
 }
+
+/**
+ * @type {import("express").RequestHandler} 
+ */
+export const guestMiddleware = async (req, res, next) => {
+  req.header("authorization")
+    ? res
+        .status(401)
+        .json({
+          errors: "Unauthorized",
+        })
+        .end()
+    : next();
+};
