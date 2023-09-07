@@ -125,7 +125,12 @@ const initializeClientInstance = async (requestClientName, username) => {
 
     console.log(client)
     if (WAClientInstanceManager[client.client_name]?.state == 'CREATED') {
-        WAClientInstanceManager[client.client_name].init();
+        const instance = WAClientInstanceManager[client.client_name].init();
+        instance.catch((fail)=>{
+            WAClientInstanceManager[client.client_name].setState("CREATED")
+            console.error("fail to initialize instance : ", fail)
+            console.log(WAClientInstanceManager[client.client_name]);
+        })
     } else {
         throw new ResponseError(400, "clientname is not found or not in CREATED state");
     }
@@ -248,20 +253,20 @@ async function sendTextMessage(clientName, targetNumber, textMessage) {
 
 async function destroySession(clientName,username) {
     const destroyWAClient = await WAClientInstanceManager[clientName].destroySession()
-    console.log(destroySession);
-    const clientDbState = prismaClient.client.delete({
-        where: {
-            AND:[
-                {
-                    username: username,
-                }
-                ,{
-                    client_name: clientName
-                }
-            ]
-        }
-    })
-    console.log(clientDbState);
+    console.log(destroyWAClient);
+    // const clientDbState = prismaClient.client.delete({
+    //     where: {
+    //         AND:[
+    //             {
+    //                 username: username,
+    //             }
+    //             ,{
+    //                 client_name: clientName
+    //             }
+    //         ]
+    //     }
+    // })
+    console.log(destroyWAClient);
     return destroyWAClient
 }
 

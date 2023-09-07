@@ -3,6 +3,7 @@ import whatsapp from 'whatsapp-web.js';
 import { onStateChanged } from './wa-state-sniffer.js';
 import { prismaClient } from '../application/database.js';
 import qrcode from "qrcode";
+import { logEmitter } from "../application/logging.js";
 
 const { Client, LocalAuth } = whatsapp;
 
@@ -26,13 +27,14 @@ class WAClient {
             authStrategy: authLocal,
             puppeteer: {
                 args: ['--no-sandbox'],
-                headless: false,
+                headless: config.bot.browser.headless,
                 // executablePath: "X:/Users/####/AppData/Local/Chromium/Application/chrome.exe"
             },
             qrMaxRetries: 3,
             authTimeoutMs: 60000
         });
-        console.log(clientName, ' created');
+        
+        logEmitter.info("instance "+ clientName +" created");
     }
 
     injectEventListener(callback) {
@@ -40,18 +42,20 @@ class WAClient {
         // (callback)()
 
         this.instance.on('change_state', (state)=>{
-            console.log('changed state', state);
+            logEmitter.info('changed state' + state)
         })
 
         // this.instance.on('change_state', onStateChanged)
-        this.instance.on('authenticated',(session)=> {
+        this.instance.on('authenticated',(session) => {
+            this.state = 'AUTHENTICATED'
             console.log('session',session);
         })
+
         this.instance.on('qr', async (qr) => {
             try {
                 // MENGUBAH QRCODE MENJADI DATA URL BASE64
                 console.log('')
-                console.log('WAClientInstances QR-State for ', this.clientName)
+                logEmitter.info("WAClientInstances QR-State for " + this.clientName)
                 console.log('')
 
                 // QR-Code in terminal
@@ -75,16 +79,14 @@ class WAClient {
                 this.state = "QR"
 
             } catch (error) {
-                console.log(error.message)
+                logEmitter.error(error)
             }
         });
 
         this.instance.on('ready', async () => {
             // UPDATE QRCODE PADA TABLE CLIENTS DATABASE
             console.log('')
-            console.log('update state ready')
-            console.log('')
-            console.log('new WAClientInstances, Ready State')
+            logEmitter.info(this.clientName + " update state ready");
             console.log('')
             
             await this.setStatus('sighing shell customer rearview')
@@ -114,9 +116,10 @@ class WAClient {
 
         this.instance.on("disconnected", async function (reason) {
           if (reason == "NAVIGATION") {
+            logEmitter.error("disconnected "+ reason);
             await this.instance.destroy();
           }
-          console.log("disconnected ", reason);
+          logEmitter.error("disconnected " + reason)
         });
     }
 
@@ -158,6 +161,14 @@ class WAClient {
     async getState() {
         return await this.instance.getState()
     }
+
+    /**
+     * @param {string} state
+     * @returns {void}
+     */
+    setState(state){
+        this.state = state
+    } 
     /**
      * 
      * @returns {Promise<void>}
@@ -178,6 +189,7 @@ class WAClient {
     }
 
     async destroySession() {
+        this.state = 'destroyed'
         return await this.instance.destroy()
     }
 }
