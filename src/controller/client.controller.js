@@ -104,7 +104,7 @@ const getClientState = async (req, res, next) => {
 
         const result = await clientService.getInstanceState(req.body.client_name)
 
-        res.status(200).json({
+        return res.status(200).json({
             status: true,
             data: result
         });
@@ -124,7 +124,7 @@ const getClientByName = async (req, res, next) => {
         };
 
         const result = await clientService.getClientByName(request, username);
-        res.status(200).json({
+        return res.status(200).json({
             status: true,
             data: result
         });
@@ -142,7 +142,7 @@ const getAllClient = async (req, res, next) => {
         const username = req.user.username;
 
         const result = await clientService.getAllClient(username);
-        res.status(200).json({
+        return res.status(200).json({
             status: true,
             data: result
         });
@@ -160,7 +160,7 @@ const sendMessage = async (req, res, next) => {
         const request = req.body;
 
         const result = await clientService.sendMessage(request, username);
-        res.status(200).json({
+        return res.status(200).json({
             status: true,
             data: result
         });
@@ -180,7 +180,7 @@ const sendMedia = async (req, res, next) => {
         // TODO: MEMANGGIL SERVICE CLIENT SEND MEDIA
 
         // RESPONSE
-        res.status(200).json({
+        return res.status(200).json({
             status: true,
             data: result
         });
@@ -200,7 +200,7 @@ const sendButton = async (req, res, next) => {
         // TODO: MEMANGGIL SERVICE CLIENT SEND BUTTON
 
         // RESPONSE
-        res.status(200).json({
+        return res.status(200).json({
             status: true,
             data: result
         });
@@ -221,7 +221,7 @@ const setClientStatus = async (req, res, next) => {
         // re - naufal : sudah ada fitur built in nya di WAClient, method yang digunakan adalah setStatus(string)
 
         // RESPONSE
-        res.status(200).json({
+        return res.status(200).json({
             status: true,
             data: result
         });
@@ -241,7 +241,7 @@ const getUserPicture = async (req, res, next) => {
         // TODO: MEMANGGIL SERVICE CLIENT GET USER PICTURE
 
         // RESPONSE
-        res.status(200).json({
+        return res.status(200).json({
             status: true,
             data: result
         });
@@ -258,6 +258,7 @@ const destroyClientSession = async (req, res, next) => {
         const data = req.body;
     
         const destroy = await clientService.destroySession(data.client_name,username)
+        
         return res.end('ended','ascii')
     } catch (error) {
         next(e)
